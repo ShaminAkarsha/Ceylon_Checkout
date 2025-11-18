@@ -1,6 +1,6 @@
 export default function Hero() {
   return (
-    <div className="relative h-96 bg-gradient-to-r from-emerald-600 to-teal-600 overflow-hidden">
+    <div className="pt-20 relative h-96 bg-gradient-to-r from-emerald-600 to-teal-600 overflow-hidden">
       <div className="absolute inset-0 bg-black opacity-20"></div>
       <div
         className="absolute inset-0 opacity-10"

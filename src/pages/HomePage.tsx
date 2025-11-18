@@ -2,7 +2,6 @@ import { products } from '../data/mockData';
 import { useCart } from '../context/CartContext';
 import ProductCard from '../components/ProductCard';
 import Hero from '../components/Hero';
-import Footer from '../components/Footer';
 
 export default function HomePage() {
   const tours = products.filter(p => p.category === 'tour');
@@ -48,8 +47,6 @@ export default function HomePage() {
           </div>
         </section>
       </div>
-
-      <Footer />
     </div>
   );
 }

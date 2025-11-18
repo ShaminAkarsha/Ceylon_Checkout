@@ -1,31 +1,23 @@
-import { useState } from 'react';
-import { CartProvider } from './context/CartContext';
-import Navbar from './components/Navbar';
-import Cart from './components/Cart';
-import HomePage from './pages/HomePage';
-import SearchPage from './pages/SearchPage';
-import SupportPage from './pages/SupportPage'; 
-
-function AppContent() {
-  const [currentPage, setCurrentPage] = useState<'home' | 'search' | 'support'>('home');
-  const [isCartOpen, setIsCartOpen] = useState(false);
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar currentPage={currentPage} onNavigate={setCurrentPage} onCartOpen={() => setIsCartOpen(true)} />
-      <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
-      {currentPage === 'home' && <HomePage />}
-      {currentPage === 'search' && <SearchPage />}
-      {currentPage === 'support' && <SupportPage />}
-    </div>
-  );
-}
+import { CartProvider } from "./context/CartContext";
+import { BrowserRouter, Route, Routes } from "react-router";
+import CustomerHomePage from "./pages/CustomerHomePage";
+import RegisterPage from "./pages/RegisterPage";
 
 function App() {
   return (
-    <CartProvider>
-      <AppContent />
-    </CartProvider>
+          <CartProvider>
+    
+    <BrowserRouter>
+      <div className="min-h-screen">
+        <Routes>
+            <Route path="/*" element={<CustomerHomePage />} />
+            <Route path="/admin/*" element={<div>Admin Page - To be implemented</div>} />
+            <Route path="/register" element={<RegisterPage />} />
+        </Routes>
+      </div>
+    </BrowserRouter>
+          </CartProvider>
+
   );
 }
 

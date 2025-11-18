@@ -34,9 +34,9 @@ export default function SupportPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="pt-24 pb-16">
+      <div className="pb-16">
         <div className="bg-gradient-to-r from-emerald-600 to-teal-600 py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="pt-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">How Can We Help?</h1>
             <p className="text-xl text-emerald-50">Get answers to common questions and reach out to our support team</p>
           </div>
