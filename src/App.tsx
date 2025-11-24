@@ -2,6 +2,7 @@ import { CartProvider } from "./context/CartContext";
 import { BrowserRouter, Route, Routes } from "react-router";
 import CustomerHomePage from "./pages/CustomerHomePage";
 import RegisterPage from "./pages/RegisterPage";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
   return (
@@ -11,7 +12,7 @@ function App() {
       <div className="min-h-screen">
         <Routes>
             <Route path="/*" element={<CustomerHomePage />} />
-            <Route path="/admin/*" element={<div>Admin Page - To be implemented</div>} />
+            <Route path="/admin/*" element={<AdminDashboard />} />
             <Route path="/register" element={<RegisterPage />} />
         </Routes>
       </div>
