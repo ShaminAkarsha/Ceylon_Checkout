@@ -1,34 +1,56 @@
-import { useEffect, FormEvent } from "react";
+import { useEffect, FormEvent, useState } from "react";
 import { LogIn } from "lucide-react";
 import { Link } from "react-router";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { login, clearError } from "../store/authSlice";
 
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLogin?: (credentials: { email: string; password: string }) => void;
 }
 
 export default function LoginModal({
   isOpen,
   onClose,
-  onLogin,
 }: LoginModalProps) {
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const dispatch = useAppDispatch();
+  const { isLoading, error, isAuthenticated } = useAppSelector((state) => state.auth);
+  const [localError, setLocalError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      onClose();
+    }
+  }, [isAuthenticated, onClose]);
+
+  useEffect(() => {
+    if (isOpen) {
+      dispatch(clearError());
+      setLocalError(null);
+    }
+  }, [isOpen, dispatch]);
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLocalError(null);
+    
     const form = e.currentTarget as HTMLFormElement;
     const data = new FormData(form);
 
-    const email = String(data.get("email") || "");
+    const email = String(data.get("email") || "").trim();
     const password = String(data.get("password") || "");
 
     if (!email || !password) {
-      // simple inline validation for now
-      alert("Please enter email and password.");
+      setLocalError("Please enter email and password.");
       return;
     }
 
-    onLogin?.({ email, password });
-    onClose();
+    try {
+      await dispatch(login({ email, password })).unwrap();
+      // Success - modal will close via useEffect watching isAuthenticated
+    } catch (err: any) {
+      setLocalError(err || "Login failed. Please try again.");
+    }
   };
 
   useEffect(() => {
@@ -78,6 +100,12 @@ export default function LoginModal({
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
+          {(error || localError) && (
+            <div className="p-3 rounded-md bg-red-50 border border-red-200">
+              <p className="text-sm text-red-600">{error || localError}</p>
+            </div>
+          )}
+          
           <div>
             <label className="block text-sm text-gray-600 mb-1">Email</label>
             <input
@@ -85,7 +113,8 @@ export default function LoginModal({
               type="email"
               required
               autoFocus
-              className="w-full px-4 py-2 rounded-md bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-emerald-400 focus:outline-none"
+              disabled={isLoading}
+              className="w-full px-4 py-2 rounded-md bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-emerald-400 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -95,7 +124,8 @@ export default function LoginModal({
               name="password"
               type="password"
               required
-              className="w-full px-4 py-2 rounded-md bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-emerald-400 focus:outline-none"
+              disabled={isLoading}
+              className="w-full px-4 py-2 rounded-md bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-emerald-400 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -103,9 +133,10 @@ export default function LoginModal({
             <div className="flex flex-col items-left gap-2 justify-between text-sm">
               <button
                 type="submit"
-                className=" w-fit bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2 px-6 rounded-xl transition-all shadow-lg hover:shadow-xl text-md"
+                disabled={isLoading}
+                className=" w-fit bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2 px-6 rounded-xl transition-all shadow-lg hover:shadow-xl text-md disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Sign in
+                {isLoading ? "Signing in..." : "Sign in"}
               </button>
               <a href="#" className="ml-1 text-emerald-600 hover:underline">
                 Forgot password?

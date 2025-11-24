@@ -1,28 +1,54 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { register, clearError } from "../store/authSlice";
 
 export default function RegisterPage() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [errors, setErrors] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
+  
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const { isLoading, error, isAuthenticated } = useAppSelector((state) => state.auth);
 
-  const handleSubmit = () => {
-    setErrors(null);
+  useEffect(() => {
+    dispatch(clearError());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      // Redirect to home page after successful registration
+      navigate("/");
+    }
+  }, [isAuthenticated, navigate]);
+
+  const handleSubmit = async () => {
+    setLocalError(null);
 
     if (!fullName.trim() || !email.trim() || !password) {
-      setErrors("Please fill in all required fields.");
+      setLocalError("Please fill in all required fields.");
       return;
     }
 
     if (password !== confirm) {
-      setErrors("Passwords do not match.");
+      setLocalError("Passwords do not match.");
       return;
     }
 
-    console.log("Registering user", { fullName, email });
-    setSuccess(true);
+    if (password.length < 6) {
+      setLocalError("Password must be at least 6 characters long.");
+      return;
+    }
+
+    try {
+      await dispatch(register({ fullName, email, password })).unwrap();
+      // Success - will redirect via useEffect
+    } catch (err: any) {
+      setLocalError(err || "Registration failed. Please try again.");
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -30,22 +56,6 @@ export default function RegisterPage() {
       handleSubmit();
     }
   };
-
-  if (success) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 flex items-center justify-center px-6">
-        <div className="text-center max-w-md">
-          <div className="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-3">Welcome aboard!</h2>
-          <p className="text-gray-600 text-lg">Your account has been created successfully.</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 flex">
@@ -133,9 +143,9 @@ export default function RegisterPage() {
             <p className="text-gray-600 text-lg">Start your journey with us today</p>
           </div>
 
-          {errors && (
+          {(error || localError) && (
             <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200">
-              <p className="text-red-600 text-sm">{errors}</p>
+              <p className="text-red-600 text-sm">{error || localError}</p>
             </div>
           )}
 
@@ -148,7 +158,8 @@ export default function RegisterPage() {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 onKeyPress={handleKeyPress}
-                className="w-full px-5 py-4 rounded-xl bg-white border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-lg shadow-sm"
+                disabled={isLoading}
+                className="w-full px-5 py-4 rounded-xl bg-white border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 placeholder="Enter your full name"
               />
             </div>
@@ -162,7 +173,8 @@ export default function RegisterPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 onKeyPress={handleKeyPress}
-                className="w-full px-5 py-4 rounded-xl bg-white border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-lg shadow-sm"
+                disabled={isLoading}
+                className="w-full px-5 py-4 rounded-xl bg-white border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 placeholder="you@example.com"
               />
             </div>
@@ -177,7 +189,8 @@ export default function RegisterPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  className="w-full px-5 py-4 rounded-xl bg-white border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-lg shadow-sm"
+                  disabled={isLoading}
+                  className="w-full px-5 py-4 rounded-xl bg-white border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   placeholder="••••••"
                 />
               </div>
@@ -190,7 +203,8 @@ export default function RegisterPage() {
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  className="w-full px-5 py-4 rounded-xl bg-white border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-lg shadow-sm"
+                  disabled={isLoading}
+                  className="w-full px-5 py-4 rounded-xl bg-white border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   placeholder="••••••"
                 />
               </div>
@@ -199,9 +213,10 @@ export default function RegisterPage() {
             <div className="pt-3">
               <button
                 onClick={handleSubmit}
-                className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-4 rounded-xl transition-all shadow-lg hover:shadow-xl text-lg"
+                disabled={isLoading}
+                className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-4 rounded-xl transition-all shadow-lg hover:shadow-xl text-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Create account
+                {isLoading ? "Creating account..." : "Create account"}
               </button>
             </div>
 
@@ -227,9 +242,9 @@ export default function RegisterPage() {
 
             <p className="text-center text-gray-600">
               Already have an account?{" "}
-              <a href="#" className="text-emerald-600 hover:text-emerald-700 font-semibold transition-colors">
+              <Link to="/" className="text-emerald-600 hover:text-emerald-700 font-semibold transition-colors">
                 Sign in
-              </a>
+              </Link>
             </p>
           </div>
         </div>
