@@ -5,9 +5,10 @@ export default function Hero() {
       <div
         className="absolute inset-0 opacity-10"
         style={{
-          backgroundImage: "url('https://images.pexels.com/photos/1007426/pexels-photo-1007426.jpeg?auto=compress&cs=tinysrgb&w=1600')",
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          backgroundImage:
+            "url('https://images.pexels.com/photos/1007426/pexels-photo-1007426.jpeg?auto=compress&cs=tinysrgb&w=1600')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
         }}
       ></div>
 
@@ -16,7 +17,8 @@ export default function Hero() {
           Discover Sri Lanka
         </h1>
         <p className="text-xl md:text-2xl text-white mb-8 max-w-2xl">
-          Experience authentic tours and handcrafted treasures from the Pearl of the Indian Ocean
+          Experience authentic tours and handcrafted treasures from the Pearl of
+          the Indian Ocean
         </p>
         <div className="flex space-x-4">
           <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-lg px-6 py-4">

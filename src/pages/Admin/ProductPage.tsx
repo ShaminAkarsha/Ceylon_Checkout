@@ -2,8 +2,14 @@ import { useState, useEffect } from "react";
 import { Plus, Search, RefreshCw } from "lucide-react";
 import ProductCardAdmin from "../../components/ProductCardAdmin";
 import ProductEditModal from "../../components/ProductEditModal";
-import type { Product, CreateProductDto, UpdateProductDto } from "../../types/product";
+import type {
+  Product,
+  CreateProductDto,
+  UpdateProductDto,
+} from "../../types/product";
 import { productAPI } from "../../services/productAPI";
+import ProductTableRow from "../../components/ProducutTableRow";
+import { useNavigate } from "react-router";
 
 export default function ProductPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -12,10 +18,7 @@ export default function ProductPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  
-  // Modal states
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const navigate = useNavigate();
 
   // Load products on mount
   useEffect(() => {
@@ -57,48 +60,16 @@ export default function ProductPage() {
     // Filter by category
     if (selectedCategory !== "all") {
       filtered = filtered.filter(
-        (p) => p.productCategory.toLowerCase() === selectedCategory.toLowerCase()
+        (p) =>
+          p.productCategory.toLowerCase() === selectedCategory.toLowerCase()
       );
     }
 
     setFilteredProducts(filtered);
   };
-
-  const handleCreateProduct = async (productData: CreateProductDto) => {
-    try {
-      await productAPI.createProduct(productData);
-      await loadProducts();
-      setIsModalOpen(false);
-      setEditingProduct(null);
-    } catch (err: any) {
-      throw new Error(err.message || "Failed to create product");
-    }
+  const handleEditProduct = async (productId: number) => {
+    navigate(`/admin/products/edit/${productId}`);
   };
-
-  const handleUpdateProduct = async (productData: UpdateProductDto) => {
-    try {
-      await productAPI.updateProduct(productData);
-      await loadProducts();
-      setIsModalOpen(false);
-      setEditingProduct(null);
-    } catch (err: any) {
-      throw new Error(err.message || "Failed to update product");
-    }
-  };
-
-  const handleSaveProduct = async (productData: CreateProductDto | UpdateProductDto) => {
-    if ("productId" in productData) {
-      await handleUpdateProduct(productData);
-    } else {
-      await handleCreateProduct(productData);
-    }
-  };
-
-  const handleEditProduct = (product: Product) => {
-    setEditingProduct(product);
-    setIsModalOpen(true);
-  };
-
   const handleDeleteProduct = async (productId: number) => {
     if (!confirm("Are you sure you want to delete this product?")) {
       return;
@@ -122,18 +93,22 @@ export default function ProductPage() {
   };
 
   const handleCreateNew = () => {
-    setEditingProduct(null);
-    setIsModalOpen(true);
+    navigate("/admin/products/create");
   };
 
   // Get unique categories
-  const categories = ["all", ...new Set(products.map((p) => p.productCategory))];
+  const categories = [
+    "all",
+    ...new Set(products.map((p) => p.productCategory)),
+  ];
 
   return (
     <div className="p-6">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Product Management</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          Product Management
+        </h1>
         <p className="text-gray-600">Manage your product catalog</p>
       </div>
 
@@ -142,7 +117,10 @@ export default function ProductPage() {
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Search */}
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              size={20}
+            />
             <input
               type="text"
               value={searchQuery}
@@ -194,11 +172,15 @@ export default function ProductPage() {
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           <p className="text-sm text-gray-600 mb-1">Filtered Results</p>
-          <p className="text-2xl font-bold text-emerald-600">{filteredProducts.length}</p>
+          <p className="text-2xl font-bold text-emerald-600">
+            {filteredProducts.length}
+          </p>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           <p className="text-sm text-gray-600 mb-1">Categories</p>
-          <p className="text-2xl font-bold text-gray-900">{categories.length - 1}</p>
+          <p className="text-2xl font-bold text-gray-900">
+            {categories.length - 1}
+          </p>
         </div>
       </div>
 
@@ -225,7 +207,9 @@ export default function ProductPage() {
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Search className="text-gray-400" size={32} />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">No products found</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            No products found
+          </h3>
           <p className="text-gray-600 mb-4">
             {searchQuery || selectedCategory !== "all"
               ? "Try adjusting your search or filters"
@@ -244,30 +228,49 @@ export default function ProductPage() {
       )}
 
       {/* Products Grid */}
+      {/* Products Table */}
       {!isLoading && filteredProducts.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredProducts.map((product) => (
-            <ProductCardAdmin
-              key={product.productId}
-              product={product}
-              onEdit={handleEditProduct}
-              onDelete={handleDeleteProduct}
-              onToggleStatus={handleToggleStatus}
-            />
-          ))}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full border-collapse">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">
+                    Product
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">
+                    Category
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">
+                    Price
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">
+                    Stock
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">
+                    Status
+                  </th>
+                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-gray-200">
+                {filteredProducts.map((product) => (
+                  <ProductTableRow
+                    key={product.productId}
+                    product={product}
+                    onEdit={() => handleEditProduct(product.productId)}
+                    onDelete={handleDeleteProduct}
+                    onToggleStatus={handleToggleStatus}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
-
-      {/* Edit/Create Modal */}
-      <ProductEditModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setEditingProduct(null);
-        }}
-        onSave={handleSaveProduct}
-        product={editingProduct}
-      />
     </div>
   );
 }
