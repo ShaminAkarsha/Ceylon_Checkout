@@ -1,6 +1,5 @@
 import { Mail, Phone, MessageSquare, Clock, HelpCircle, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
-import Footer from '../components/Footer';
 
 export default function SupportPage() {
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
@@ -139,8 +138,6 @@ export default function SupportPage() {
           </div>
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 }

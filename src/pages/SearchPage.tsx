@@ -1,47 +1,86 @@
-import { useState, useMemo } from 'react';
-import { Search, SlidersHorizontal } from 'lucide-react';
-import { products } from '../data/mockData';
-import { useCart } from '../context/CartContext';
-import ProductCard from '../components/ProductCard';
-import Footer from '../components/Footer';
+import { useState, useMemo, useEffect } from "react";
+import { Search, SlidersHorizontal } from "lucide-react";
+import { useCart } from "../context/CartContext";
+import ProductCard from "../components/ProductCard";
+import { useSearchParams } from "react-router";
+import { productAPI } from "../services/productAPI";
+import type {
+  Product,
+} from "../types/product";
 
 export default function SearchPage() {
-  const { addItem } = useCart();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<'all' | 'tour' | 'handicraft'>('all');
-  const [priceRange, setPriceRange] = useState<'all' | 'low' | 'medium' | 'high'>('all');
-  const [sortBy, setSortBy] = useState<'name' | 'price-low' | 'price-high' | 'rating'>('rating');
+  const [products, setProducts] = useState<Product[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<"all" | "Tours" | "HandyCrafts">("all");
+  const [priceRange, setPriceRange] = useState<"all" | "low" | "medium" | "high">("all");
+  const [sortBy, setSortBy] = useState<"name" | "price-low" | "price-high" | "rating">("rating");
+  const [searchParams] = useSearchParams();
+  const category = searchParams.get("category");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  useEffect(() => {
+    if (category === "Tours" || category === "Tour") {
+      setSelectedCategory("Tours");
+    } else if (category === "HandyCrafts" || category === "HandiCrafts" || category === "Handicraft") {
+      setSelectedCategory("HandyCrafts");
+    } else {
+      setSelectedCategory("all");
+    }
+  }, [category]);
+
+    const loadProducts = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await productAPI.getAllProducts();
+      setProducts(data);
+    } catch (err: any) {
+      setError(err.message || "Failed to load products");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const filteredProducts = useMemo(() => {
     let filtered = [...products];
 
     if (searchTerm) {
       filtered = filtered.filter(
-        product =>
-          product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.location?.toLowerCase().includes(searchTerm.toLowerCase())
+        (product) =>
+          product.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          product.productDescription
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          (product.additionalAttributes as any)?.tour_location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (product.additionalAttributes as any)?.origin?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(product => product.category === selectedCategory);
+    if (selectedCategory !== "all") {
+      filtered = filtered.filter(
+        (product) => product.productCategory === selectedCategory
+      );
     }
 
-    if (priceRange !== 'all') {
-      filtered = filtered.filter(product => {
-        if (priceRange === 'low') return product.price < 50;
-        if (priceRange === 'medium') return product.price >= 50 && product.price < 150;
-        if (priceRange === 'high') return product.price >= 150;
+    if (priceRange !== "all") {
+      filtered = filtered.filter((product) => {
+        if (priceRange === "low") return product.productPrice < 50;
+        if (priceRange === "medium")
+          return product.productPrice >= 50 && product.productPrice < 150;
+        if (priceRange === "high") return product.productPrice >= 150;
         return true;
       });
     }
 
     filtered.sort((a, b) => {
-      if (sortBy === 'name') return a.name.localeCompare(b.name);
-      if (sortBy === 'price-low') return a.price - b.price;
-      if (sortBy === 'price-high') return b.price - a.price;
-      if (sortBy === 'rating') return b.rating - a.rating;
+      if (sortBy === "name") return a.productName.localeCompare(b.productName);
+      if (sortBy === "price-low") return a.productPrice - b.productPrice;
+      if (sortBy === "price-high") return b.productPrice - a.productPrice;
       return 0;
     });
 
@@ -52,7 +91,9 @@ export default function SearchPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <div className="bg-gradient-to-r from-emerald-600 to-teal-600 py-12 pt-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-4xl font-bold text-white mb-6">Search Products</h1>
+          <h1 className="text-4xl font-bold text-white mb-6">
+            Search Products
+          </h1>
           <div className="relative">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-gray-400" />
             <input
@@ -84,8 +125,8 @@ export default function SearchPage() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
                 <option value="all">All Categories</option>
-                <option value="tour">Tours</option>
-                <option value="handicraft">Handicrafts</option>
+                <option value="Tours">Tours</option>
+                <option value="HandyCrafts">Handicrafts</option>
               </select>
             </div>
 
@@ -124,10 +165,10 @@ export default function SearchPage() {
             <div className="flex items-end">
               <button
                 onClick={() => {
-                  setSearchTerm('');
-                  setSelectedCategory('all');
-                  setPriceRange('all');
-                  setSortBy('rating');
+                  setSearchTerm("");
+                  setSelectedCategory("all");
+                  setPriceRange("all");
+                  setSortBy("rating");
                 }}
                 className="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition-colors"
               >
@@ -139,26 +180,35 @@ export default function SearchPage() {
 
         <div className="mb-6">
           <p className="text-lg text-gray-700">
-            Found <span className="font-bold text-emerald-600">{filteredProducts.length}</span> products
+            Found{" "}
+            <span className="font-bold text-emerald-600">
+              {filteredProducts.length}
+            </span>{" "}
+            products
           </p>
         </div>
 
         {filteredProducts.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
-            {filteredProducts.map(product => (
-              <div key={product.id} onClick={() => addItem(product, 1)} className="cursor-pointer">
+            {filteredProducts.map((product) => (
+              <div
+                key={product.productId}
+                className="cursor-pointer"
+              >
                 <ProductCard product={product} />
               </div>
             ))}
           </div>
         ) : (
           <div className="text-center py-16">
-            <p className="text-xl text-gray-500">No products found matching your search criteria.</p>
+            <p className="text-xl text-gray-500">
+              No products found matching your search criteria.
+            </p>
             <button
               onClick={() => {
-                setSearchTerm('');
-                setSelectedCategory('all');
-                setPriceRange('all');
+                setSearchTerm("");
+                setSelectedCategory("all");
+                setPriceRange("all");
               }}
               className="mt-4 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition-colors"
             >
@@ -167,8 +217,6 @@ export default function SearchPage() {
           </div>
         )}
       </div>
-
-      <Footer />
     </div>
   );
 }

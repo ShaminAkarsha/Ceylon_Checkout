@@ -17,7 +17,6 @@ class ProductAPI {
       if (!response.ok) {
         throw new Error('Failed to fetch products');
       }
-
       return await response.json();
     } catch (error: any) {
       throw new Error(error.message || 'Failed to fetch products');

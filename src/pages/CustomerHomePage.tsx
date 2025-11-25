@@ -5,6 +5,7 @@ import Cart from "../components/Cart";
 import HomePage from "./HomePage";
 import SearchPage from "./SearchPage";
 import SupportPage from "./SupportPage";
+import ProductDetailPage from "./ProductDetailPage";
 import Footer from "../components/Footer";
 
 const CustomerHomePage = () => {
@@ -19,6 +20,7 @@ const CustomerHomePage = () => {
           <Route path="/" element={<HomePage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/support" element={<SupportPage />} />
+          <Route path="/product/:id" element={<ProductDetailPage />} />
         </Routes>
       </main>
       <Footer />

@@ -1,11 +1,7 @@
 import { useState, useEffect } from "react";
 import { Plus, Search, RefreshCw } from "lucide-react";
-import ProductCardAdmin from "../../components/ProductCardAdmin";
-import ProductEditModal from "../../components/ProductEditModal";
 import type {
   Product,
-  CreateProductDto,
-  UpdateProductDto,
 } from "../../types/product";
 import { productAPI } from "../../services/productAPI";
 import ProductTableRow from "../../components/ProducutTableRow";
